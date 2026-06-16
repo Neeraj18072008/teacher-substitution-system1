@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - Teacher Substitution System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="auth-page">
+
+<div class="auth-container">
+    <div class="auth-side">
+        <div class="icon">📋</div>
+        <h2>Get Started Today!</h2>
+        <p>Create your account and start managing teacher substitutions efficiently for your school.</p>
+    </div>
+    
+    <div class="auth-form">
+        <h1>Create Account</h1>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <label>School Name</label>
+                <input type="text" name="school_name" required placeholder="Your School Name">
+            </div>
+            
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" required placeholder="school@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required placeholder="••••••••">
+            </div>
+            
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm_password" required placeholder="••••••••">
+            </div>
+            
+            <button type="submit">✅ Create Account</button>
+        </form>
+        
+        <div class="auth-link">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

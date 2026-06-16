@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Teacher Substitution System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard-page">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🎓</div>
+        <h3>STSS<br>Smart Teacher Substitution System</h3>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="sidebar-nav-section">
+            <div class="sidebar-nav-label">MAIN</div>
+            <a href="/dashboard" class="sidebar-nav-item active">
+                <span class="sidebar-nav-item-icon">📊</span>
+                <span>Upload Timetable</span>
+            </a>
+            <a href="#absence-section" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">👤</span>
+                <span>Mark Absence</span>
+            </a>
+            <a href="#auto-assign-section" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">🤖</span>
+                <span>Auto-Assign</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav-section">
+            <div class="sidebar-nav-label">REPORTS</div>
+            <a href="/substitution-history" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📋</span>
+                <span>View History</span>
+            </a>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <a href="/logout" class="logout-btn">🚪 Logout</a>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <div class="content-header">
+        <div>
+            <h1>{{ school.name }}</h1>
+            <p>Welcome to Smart Teacher Substitution System</p>
+        </div>
+    </div>
+    
+    <!-- STATISTICS -->
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Total Teachers</h3>
+            <div class="value">{{ teachers_count }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Timetable Entries</h3>
+            <div class="value">{{ timetables_count }}</div>
+        </div>
+    </div>
+    
+    <!-- TWO COLUMN GRID FOR FORMS -->
+    <div class="sections-grid">
+        <!-- TIMETABLE UPLOAD SECTION -->
+        <div class="section">
+            <h2>📊 Upload Timetable</h2>
+            <p>Import a CSV file with columns: Teacher, Subject, Period, Day, Class, Wing</p>
+            <form id="timetableForm">
+                <div class="form-group">
+                    <label>Select CSV File</label>
+                    <input type="file" name="file" accept=".csv,.xlsx" required>
+                </div>
+                <button class="action-btn" type="submit">📤 Upload</button>
+            </form>
+            <div id="uploadMessage"></div>
+        </div>
+        
+        <!-- ABSENCE MARKING SECTION -->
+        <div class="section" id="absence-section">
+            <h2>👤 Mark Teacher Absence</h2>
+            <p>Record teacher absence and duration</p>
+            <form id="absenceForm">
+                <div class="form-group">
+                    <label>Select Teacher *</label>
+                    <select id="teacherSelect" required>
+                        <option value="">-- Choose --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date *</label>
+                    <input type="date" id="absenceDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <div style="margin-top: 8px;">
+                        <label style="margin-right: 20px; display: inline-block;">
+                            <input type="radio" name="absenceType" value="full" checked> Full Day
+                        </label>
+                        <label style="display: inline-block;">
+                            <input type="radio" name="absenceType" value="half"> Half Day
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reason (Optional)</label>
+                    <input type="text" id="reason" placeholder="Leave reason">
+                </div>
+                <button class="action-btn" type="submit">✅ Save</button>
+            </form>
+            <div id="absenceMessage"></div>
+        </div>
+    </div>
+    
+    <!-- AUTO-ASSIGN SECTION -->
+    <div class="section" id="auto-assign-section">
+        <h2>🤖 Auto-Assign Substitutes</h2>
+        <p>System will automatically assign the best available teachers as substitutes.</p>
+        <form id="autoAssignForm">
+            <div class="form-group">
+                <label>Select Date *</label>
+                <input type="date" id="assignDate" required>
+            </div>
+            <button class="action-btn" type="submit">⚡ Generate</button>
+        </form>
+        <div id="assignMessage"></div>
+        
+        <div id="print-area" style="margin-top: 25px;">
+            <h3 id="assignments-title" style="display: none; margin-bottom: 15px;">Substitution Assignments</h3>
+            <div id="assignmentsList"></div>
+        </div>
+        
+        <div id="print-actions" class="print-actions" style="display: none; margin-top: 15px;">
+            <button id="print-assignments-btn">🖨️ Print</button>
+            <button id="download-pdf-assignments" class="action-btn secondary">📥 Download PDF</button>
+        </div>
+    </div>
+    
+    <!-- SUBSTITUTION HISTORY -->
+    <div class="section">
+        <h2>📋 Substitution History</h2>
+        <p>View complete substitution records and history</p>
+        <a href="/substitution-history" class="action-btn secondary">📖 View Full History</a>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+// Load teachers on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadTeachers();
+    document.getElementById('timetableForm').addEventListener('submit', uploadTimetable);
+    document.getElementById('absenceForm').addEventListener('submit', markAbsence);
+    document.getElementById('autoAssignForm').addEventListener('submit', autoAssignSubstitutes);
+    document.getElementById('print-assignments-btn').addEventListener('click', printAssignments);
+    document.getElementById('download-pdf-assignments').addEventListener('click', downloadAssignmentsPDF);
+});
+
+function loadTeachers() {
+    fetch('/api/teachers')
+        .then(res => res.json())
+        .then(teachers => {
+            const select = document.getElementById('teacherSelect');
+            teachers.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = teacher.name + ' (' + teacher.subject + ')';
+                select.appendChild(option);
+            });
+        });
+}
+
+function uploadTimetable(e) {
+    e.preventDefault();
+    const formData = new FormData(document.getElementById('timetableForm'));
+    const msg = document.getElementById('uploadMessage');
+    
+    fetch('/upload-timetable', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            msg.innerHTML = '<p style="color: #10b981; margin-top: 10px;">✓ Timetable uploaded successfully!</p>';
+            document.getElementById('timetableForm').reset();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            msg.innerHTML = '<p style="color: #ef4444; margin-top: 10px;">✗ ' + data.error + '</p>';
+        }
+    })
+    .catch(err => {
+        msg.innerHTML = '<p style="color: #ef4444; margin-top: 10px;">✗ Upload failed</p>';
+    });
+}
+
+function markAbsence(e) {
+    e.preventDefault();
+    const msg = document.getElementById('absenceMessage');
+    
+    const data = {
+        teacher_id: document.getElementById('teacherSelect').value,
+        date: document.getElementById('absenceDate').value,
+        reason: document.getElementById('reason').value,
+        absence_type: document.querySelector('input[name="absenceType"]:checked').value
+    };
+    
+    console.log('Sending absence data:', data);
+    
+    fetch('/mark-absence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Absence response:', data);
+        if (data.success) {
+            msg.innerHTML = '<p style="color: #10b981; margin-top: 10px;">✓ Absence marked successfully! ID: ' + data.absence_id + '</p>';
+            document.getElementById('absenceForm').reset();
+        } else {
+            msg.innerHTML = '<p style="color: #ef4444; margin-top: 10px;">✗ ' + data.error + '</p>';
+        }
+    })
+    .catch(err => {
+        console.error('Absence error:', err);
+        msg.innerHTML = '<p style="color: #ef4444; margin-top: 10px;">✗ Error: ' + err.message + '</p>';
+    });
+}
+
+function autoAssignSubstitutes(e) {
+    e.preventDefault();
+    const msg = document.getElementById('assignMessage');
+    const list = document.getElementById('assignmentsList');
+    const title = document.getElementById('assignments-title');
+    
+    const data = {
+        date: document.getElementById('assignDate').value
+    };
+    
+    console.log('Auto-assign data:', data);
+    msg.innerHTML = '<p style="color: #94a3b8; margin-top: 10px;">⏳ Processing assignments...</p>';
+    
+    fetch('/auto-assign-substitutes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Auto-assign response:', data);
+        if (data.success) {
+            msg.innerHTML = '<p style="color: #10b981; margin-top: 10px;">✓ Substitutes assigned!</p>';
+            
+            if (data.assignments.length > 0) {
+                title.style.display = 'block';
+                let html = '<table style="margin-top: 0;"><thead><tr><th>Absent Teacher</th><th>Substitute</th><th>Period</th><th>Class</th></tr></thead><tbody>';
+                data.assignments.forEach(a => {
+                    html += `<tr><td>${a.absent}</td><td>${a.substitute}</td><td>${a.period}</td><td>${a.class}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                list.innerHTML = html;
+                document.getElementById('print-actions').style.display = 'flex';
+            } else {
+                msg.innerHTML = '<p style="color: #f59e0b; margin-top: 10px;">ℹ️ No substitutes needed for this date.</p>';
+                title.style.display = 'none';
+                list.innerHTML = '';
+                document.getElementById('print-actions').style.display = 'none';
+            }
+        } else {
+            msg.innerHTML = '<p style="color: #ef4444; margin-top: 10px;">✗ ' + data.error + '</p>';
+            title.style.display = 'none';
+            document.getElementById('print-actions').style.display = 'none';
+        }
+    })
+    .catch(err => {
+        console.error('Auto-assign error:', err);
+        msg.innerHTML = '<p style="color: #ef4444; margin-top: 10px;">✗ Error: ' + err.message + '</p>';
+        title.style.display = 'none';
+        document.getElementById('print-actions').style.display = 'none';
+    });
+}
+
+function printAssignments() {
+    window.print();
+}
+
+function downloadAssignmentsPDF() {
+    let element = document.getElementById('print-area');
+    const opt = {
+        margin: 10,
+        filename: 'Substitution_Assignments.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+</body>
+</html>

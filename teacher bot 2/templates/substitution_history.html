@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Substitution History - Teacher Substitution System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard-page">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🎓</div>
+        <h3>STSS<br>Smart Teacher Substitution System</h3>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="sidebar-nav-section">
+            <div class="sidebar-nav-label">MAIN</div>
+            <a href="/dashboard" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">📊</span>
+                <span>Upload Timetable</span>
+            </a>
+            <a href="/dashboard#absence-section" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">👤</span>
+                <span>Mark Absence</span>
+            </a>
+            <a href="/dashboard#auto-assign-section" class="sidebar-nav-item">
+                <span class="sidebar-nav-item-icon">🤖</span>
+                <span>Auto-Assign</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav-section">
+            <div class="sidebar-nav-label">REPORTS</div>
+            <a href="/substitution-history" class="sidebar-nav-item active">
+                <span class="sidebar-nav-item-icon">📋</span>
+                <span>View History</span>
+            </a>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <a href="/logout" class="logout-btn">🚪 Logout</a>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <div class="content-header">
+        <div>
+            <h1>📋 Substitution History</h1>
+            <p>Complete teacher substitution schedule and records</p>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="search-box">
+            <input type="date" id="filterDate" placeholder="Filter by date">
+            <input type="text" id="searchTeacher" placeholder="Search by teacher name...">
+        </div>
+        
+        <div class="action-buttons">
+            <button id="print-btn" class="action-btn">🖨️ Print</button>
+            <button id="download-pdf" class="action-btn secondary">📥 Download PDF</button>
+        </div>
+        
+        <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+        
+        <div id="print-area">
+            <h2>Teacher Substitution Schedule</h2>
+            
+            {% if history %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Absent Teacher</th>
+                        <th>Substitute Teacher</th>
+                        <th>Period</th>
+                        <th>Class</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in history %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>{{ record.absent_teacher }}<br><small style="color: #999;">({{ record.absent_wing or '-' }})</small></td>
+                        <td>{{ record.substitute }}</td>
+                        <td>{{ record.period }}</td>
+                        <td>{{ record.class }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: #999;">
+                <p>No substitution records found yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+// Print functionality
+document.getElementById('print-btn').addEventListener('click', function() {
+    window.print();
+});
+
+// PDF Download functionality
+document.getElementById('download-pdf').addEventListener('click', function() {
+    let element = document.getElementById('print-area');
+    
+    const opt = {
+        margin: 10,
+        filename: 'Substitution_Schedule.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+});
+
+// Search and filter functionality
+document.getElementById('filterDate').addEventListener('change', filterRecords);
+document.getElementById('searchTeacher').addEventListener('keyup', filterRecords);
+
+function filterRecords() {
+    const filterDate = document.getElementById('filterDate').value;
+    const searchTeacher = document.getElementById('searchTeacher').value.toLowerCase();
+    const rows = document.querySelectorAll('#print-area table tbody tr');
+    
+    rows.forEach(row => {
+        const date = row.cells[0].textContent;
+        const teacher = row.cells[1].textContent.toLowerCase();
+        
+        const dateMatch = !filterDate || date.includes(filterDate);
+        const teacherMatch = !searchTeacher || teacher.includes(searchTeacher);
+        
+        row.style.display = (dateMatch && teacherMatch) ? '' : 'none';
+    });
+}
+</script>
+
+</body>
+</html>

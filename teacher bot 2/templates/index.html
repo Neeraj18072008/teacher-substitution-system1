@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Teacher Substitution System</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .welcome-box {
+            background: white;
+            border-radius: 16px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        .welcome-content { text-align: center; }
+        .welcome-content h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin: 0 0 20px 0;
+        }
+        .welcome-content p { font-size: 16px; line-height: 1.6; margin: 20px 0; color: #555; }
+        .features-title {
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .features-list {
+            text-align: left;
+            display: inline-block;
+            list-style: none;
+            padding: 0;
+        }
+        .features-list li {
+            padding: 10px 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+        .features-list li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+        .cta-buttons { display: flex; gap: 15px; margin-top: 40px; }
+        .cta-btn {
+            flex: 1;
+            padding: 14px 24px;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .cta-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .cta-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        .cta-btn.secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .cta-btn.secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="welcome-box">
+    <div class="welcome-content">
+        <h1>🎓 Smart Teacher Substitution System</h1>
+        
+        <p>
+            An intelligent platform for schools to manage teacher absences 
+            and automatically assign fair substitutions.
+        </p>
+        
+        <div class="features-title">✨ Features</div>
+        <ul class="features-list">
+            <li>Upload school timetables</li>
+            <li>Mark teacher absences</li>
+            <li>Auto-assign substitutes intelligently</li>
+            <li>Track substitution history</li>
+            <li>Fair workload distribution</li>
+            <li>Multi-school support</li>
+        </ul>
+        
+        <div class="cta-buttons">
+            <a href="/login" class="cta-btn primary">Login</a>
+            <a href="/register" class="cta-btn secondary">Register School</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
